@@ -34,6 +34,7 @@ class CalculatorScreen : Fragment() {
         binding.btnPercent.setOnClickListener { addDigit('%') }
         binding.btnMinus.setOnClickListener { addDigit('-') }
         binding.btnDivision.setOnClickListener { addDigit('/') }
+        binding.btnVirgula.setOnClickListener { addDigit(',') }
 
         binding.btnAC.setOnClickListener{ clearInputs() }
         binding.btnDelete.setOnClickListener{ deleteLastDigit() }
@@ -58,9 +59,20 @@ class CalculatorScreen : Fragment() {
         }
 
         val expression = binding.history.text.toString()
-        val elements = expression.toCharArray()
+        val elements = expression.split("(?=[+\\-*/])|(?<=[+\\-*/])".toRegex()).toTypedArray()
 
-        if(elements.size == 3 && expression.last().isDigit()){
+//        Regex explanation:
+//        (?=[+\\-*/]) - Positive lookahead to identify if the subsequent character is one of the operators (+, -, *, or /).
+//        | - Ou.
+//        (?<=[+\\-*/]) - Lookahead positive to identify if the subsequent character is one of the operators (+, -, * or /).
+
+        if(elements.size == 2 && expression.last() == '%'){
+            val firstDigit = elements[0].toString()
+            val result = ((firstDigit.toDoubleOrNull() ?: 0.0) / 100.0).toString()
+            binding.resultInput.text = result
+            binding.history.text = result
+        }
+        else if(elements.size == 3 && expression.last().isDigit()){
             binding.resultInput.text = performOperation(elements[0].toString(), elements[2].toString(), elements[1].toString()).toString()
         }
         else if(elements.size > 3 && expression.last().isDigit()){
@@ -72,21 +84,21 @@ class CalculatorScreen : Fragment() {
     }
 
     private fun performOperation(firstDigit: String, secondDigit: String, operator: String): Double {
-        when (operator) {
+        val formattedFirstDigit = if(firstDigit.contains(',')) firstDigit.replace(',', '.') else firstDigit
+        val formattedSecondDigit = if(secondDigit.contains(',')) secondDigit.replace(',', '.') else secondDigit
+
+        return when (operator) {
             "+" -> {
-                return (firstDigit.toDouble() + secondDigit.toDouble())
+                (formattedFirstDigit.toDouble() + formattedSecondDigit.toDouble())
             }
             "-" -> {
-                return (firstDigit.toDouble() - secondDigit.toDouble())
+                (formattedFirstDigit.toDouble() - formattedSecondDigit.toDouble())
             }
             "/" -> {
-                return (firstDigit.toDouble() / secondDigit.toDouble())
-            }
-            "%" -> {
-                return (firstDigit.toDouble() % secondDigit.toDouble())
+                (formattedFirstDigit.toDouble() / formattedSecondDigit.toDouble())
             }
             else -> {
-                return 0.0
+                0.0
             }
         }
     }
@@ -96,7 +108,7 @@ class CalculatorScreen : Fragment() {
         binding.resultInput.text = ""
     }
 
-    private fun deleteLastDigit(){
+    private fun deleteLastDigit(){ // TODO: reverse result
         val textAfterDelete = binding.history.text.toString().dropLast(1)
         binding.history.text = textAfterDelete
     }
