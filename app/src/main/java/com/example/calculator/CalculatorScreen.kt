@@ -34,6 +34,7 @@ class CalculatorScreen : Fragment() {
         binding.btnPercent.setOnClickListener { addDigit('%') }
         binding.btnMinus.setOnClickListener { addDigit('-') }
         binding.btnDivision.setOnClickListener { addDigit('/') }
+
         binding.btnAC.setOnClickListener{ clearInputs() }
         binding.btnDelete.setOnClickListener{ deleteLastDigit() }
 
