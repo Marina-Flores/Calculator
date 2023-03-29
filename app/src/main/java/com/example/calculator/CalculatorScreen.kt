@@ -1,16 +1,20 @@
 package com.example.calculator
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.room.Room
+import com.example.calculator.data.database.AppDatabase
+import com.example.calculator.data.entities.CalculationHistory
 import com.example.calculator.databinding.FragmentCalculatorScreenBinding
 
 
 class CalculatorScreen : Fragment() {
 
     private lateinit var binding : FragmentCalculatorScreenBinding
+    var db: AppDatabase? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -18,6 +22,11 @@ class CalculatorScreen : Fragment() {
     ): View? {
         binding = FragmentCalculatorScreenBinding.inflate(inflater, container, false)
         val view = binding.root
+
+        this.db = Room.databaseBuilder(
+            requireContext().applicationContext,
+            AppDatabase::class.java, "item_database"
+        ).allowMainThreadQueries().build()
 
         binding.btn0.setOnClickListener { addDigit('0') }
         binding.btnNumber1.setOnClickListener { addDigit('1') }
@@ -39,6 +48,12 @@ class CalculatorScreen : Fragment() {
         binding.btnAC.setOnClickListener{ clearInputs() }
         binding.btnDelete.setOnClickListener{ deleteLastDigit() }
 
+        binding.btnIgual.setOnClickListener {
+            val calculationHistoryDao = this.db!!.calculationHistoryDao();
+            val calculationHistory = CalculationHistory(null, binding.history.text.toString(), binding.resultInput.text.toString().toDouble(), System.currentTimeMillis())
+
+            calculationHistoryDao.insertCalculation(calculationHistory);
+        }
         return view
     }
 
