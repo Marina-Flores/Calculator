@@ -53,4 +53,6 @@ dependencies {
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation 'androidx.room:room-ktx:2.4.1'
 
+    implementation "androidx.recyclerview:recyclerview:1.2.1"
+    implementation "androidx.core:core-ktx:1.7.0"
     }
