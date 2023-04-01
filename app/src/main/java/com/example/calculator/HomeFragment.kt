@@ -17,6 +17,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var binding : FragmentHomeBinding
     var db: AppDatabase? = null
+    private lateinit var adapter: HistoryListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,7 +36,7 @@ class HomeFragment : Fragment() {
         val calculationHistoryDao = this.db!!.calculationHistoryDao();
         val history = calculationHistoryDao.getAllCalculations()
         val calculationHistoryList = binding.calculatorList as ListView
-        val adapter = ArrayAdapter<CalculationHistory>(requireContext(), android.R.layout.simple_list_item_1, history)
+        adapter = CustomHistoryListAdapter(requireContext(), R.layout.list_item_history, history)
 
         calculationHistoryList.adapter = adapter;
 
