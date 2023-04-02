@@ -28,38 +28,44 @@ class CalculatorScreen : Fragment() {
             AppDatabase::class.java, "item_database"
         ).allowMainThreadQueries().build()
 
-        binding.btn0.setOnClickListener { addDigit('0') }
-        binding.btnNumber1.setOnClickListener { addDigit('1') }
-        binding.btnNumber2.setOnClickListener { addDigit('2') }
-        binding.btnNumber3.setOnClickListener { addDigit('3') }
-        binding.btnNumber4.setOnClickListener { addDigit('4') }
-        binding.btnNumber5.setOnClickListener { addDigit('5') }
-        binding.btnNumber6.setOnClickListener { addDigit('6') }
-        binding.btnNumber7.setOnClickListener { addDigit('7') }
-        binding.btnNumber8.setOnClickListener { addDigit('8') }
-        binding.btnNumber9.setOnClickListener { addDigit('9') }
+        binding.btn0.setOnClickListener { updateNewDigit('0') }
+        binding.btnNumber1.setOnClickListener { updateNewDigit('1') }
+        binding.btnNumber2.setOnClickListener { updateNewDigit('2') }
+        binding.btnNumber3.setOnClickListener { updateNewDigit('3') }
+        binding.btnNumber4.setOnClickListener { updateNewDigit('4') }
+        binding.btnNumber5.setOnClickListener { updateNewDigit('5') }
+        binding.btnNumber6.setOnClickListener { updateNewDigit('6') }
+        binding.btnNumber7.setOnClickListener { updateNewDigit('7') }
+        binding.btnNumber8.setOnClickListener { updateNewDigit('8') }
+        binding.btnNumber9.setOnClickListener { updateNewDigit('9') }
 
-        binding.btnPlus.setOnClickListener { addDigit('+') }
-        binding.btnPercent.setOnClickListener { addDigit('%') }
-        binding.btnMinus.setOnClickListener { addDigit('-') }
-        binding.btnDivision.setOnClickListener { addDigit('/') }
-        binding.btnVirgula.setOnClickListener { addDigit(',') }
+        binding.btnPlus.setOnClickListener { updateNewDigit('+') }
+        binding.btnMinus.setOnClickListener { updateNewDigit('-') }
+        binding.btnDivision.setOnClickListener { updateNewDigit('/') }
+        binding.btnVirgula.setOnClickListener { updateNewDigit(',') }
+        binding.btnMultiplication.setOnClickListener { updateNewDigit('*') }
 
         binding.btnAC.setOnClickListener{ clearInputs() }
         binding.btnDelete.setOnClickListener{ deleteLastDigit() }
 
-        binding.btnIgual.setOnClickListener {
+        binding.btnSave.setOnClickListener {
             val calculationHistoryDao = this.db!!.calculationHistoryDao();
             val calculationHistory = CalculationHistory(null, binding.history.text.toString(), binding.resultInput.text.toString().toDouble(), System.currentTimeMillis())
 
             calculationHistoryDao.insertCalculation(calculationHistory);
         }
+
         return view
     }
 
-    private fun addDigit(digit: Char) {
+    private fun updateNewDigit(digit: Char) {
+        fillExpression(digit)
+        showResult()
+    }
+
+    private fun fillExpression(digit: Char){
         val lastChar = binding.history.text.lastOrNull()
-        val operators = arrayOf('+', '-', '%', '/')
+        val operators = arrayOf('+', '-', '*', '/')
 
         if(lastChar == null && digit in operators){
             binding.history.text = "0$digit"
@@ -72,7 +78,9 @@ class CalculatorScreen : Fragment() {
             var currentText = binding.history.text.toString()
             binding.history.text = currentText + digit
         }
+    }
 
+    private fun showResult(){
         val expression = binding.history.text.toString()
         val elements = expression.split("(?=[+\\-*/])|(?<=[+\\-*/])".toRegex()).toTypedArray()
 
@@ -81,13 +89,7 @@ class CalculatorScreen : Fragment() {
 //        | - Ou.
 //        (?<=[+\\-*/]) - Lookahead positive to identify if the subsequent character is one of the operators (+, -, * or /).
 
-        if(elements.size == 2 && expression.last() == '%'){
-            val firstDigit = elements[0].toString()
-            val result = ((firstDigit.toDoubleOrNull() ?: 0.0) / 100.0).toString()
-            binding.resultInput.text = result
-            binding.history.text = result
-        }
-        else if(elements.size == 3 && expression.last().isDigit()){
+        if(elements.size == 3 && expression.last().isDigit()){
             binding.resultInput.text = performOperation(elements[0].toString(), elements[2].toString(), elements[1].toString()).toString()
         }
         else if(elements.size > 3 && expression.last().isDigit()){
@@ -95,6 +97,9 @@ class CalculatorScreen : Fragment() {
             val lastTwoValues = elements.takeLast(2)
 
             binding.resultInput.text = performOperation(currentResult, lastTwoValues[1].toString(), lastTwoValues[0].toString()).toString()
+        }
+        else if(elements.size == 1 && expression.last().isDigit()){
+            binding.resultInput.text = elements[0].toString()
         }
     }
 
@@ -112,6 +117,9 @@ class CalculatorScreen : Fragment() {
             "/" -> {
                 (formattedFirstDigit.toDouble() / formattedSecondDigit.toDouble())
             }
+            "*" -> {
+                (formattedFirstDigit.toDouble() * formattedSecondDigit.toDouble())
+            }
             else -> {
                 0.0
             }
@@ -126,6 +134,11 @@ class CalculatorScreen : Fragment() {
     private fun deleteLastDigit(){ // TODO: reverse result
         val textAfterDelete = binding.history.text.toString().dropLast(1)
         binding.history.text = textAfterDelete
+        if(binding.history.text.toString() != "" && binding.history.text.toString() != null){
+            showResult()
+        }
+        else{
+            binding.resultInput.text = "0"
+        }
     }
-
 }
